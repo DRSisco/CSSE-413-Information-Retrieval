@@ -18,9 +18,9 @@ def visible(element):
 def isRelevant(input, title_tags, anchor_tags, text, file):
     search_terms = input.split(' ')
     for term in search_terms:
+        number_of_results = len(re.findall(term, text, re.IGNORECASE))
         print 'file ' + file
         print number_of_results
-        number_of_results = len(re.findall(term, text, re.IGNORECASE))
 
     return False
 
