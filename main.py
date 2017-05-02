@@ -8,6 +8,7 @@ from skipgrams import skipbigrams
 FILES = "./Presidents"
 
 files = [f for f in listdir(FILES) if isfile(join(FILES, f))]
+k = 1.25
 
 def visible(element):
     if element.parent.name in ['style', 'script', '[document]', 'head', 'title']:
@@ -16,18 +17,38 @@ def visible(element):
         return False
     return True
 
-def isRelevant(input, title_tags, anchor_tags, text, file):
-    search_terms = input.split(' ')
-    for term in search_terms:
-        number_of_results = len(re.findall(term, text, re.IGNORECASE))
-        print 'file ' + file
-        print number_of_results
 
-    return False
+def getTermFrequency(input, title_tags, anchor_tags, text, fileScore):
+    number_of_results = len(re.findall(input, text, re.IGNORECASE))
+    number_of_results += len(re.findall(input, anchor_tags, re.IGNORECASE))
+    number_of_results += 10 * len(re.findall(input, title_tags, re.IGNORECASE))
+    return number_of_results
 
-def idf(total_docs, n, f):
+
+def numRelevantFiles(counts):
+    totalFiles = list()
+    i = 0
+    while i < len(counts[0]):
+        total = 0
+        for count in counts:
+            if count[i] > 0:
+                total += 1
+        totalFiles.append(total)
+        i += 1
+    return totalFiles
+
+
+def idf(total_docs, n):
     temp = (total_docs - n + 0.5) / (n + 0.5)
     return math.log(temp)
+
+def calcBM25(idfs, freq, length, alength):
+    total = 0
+    i = 0
+    for idfval in idfs:
+        b = .75 * idfval
+        total += (freq[i] * (k + 1))/ (freq[i] + (k * (1 - b + (b * (length/alength)))))
+    return total
 
 def main():
     while True:
@@ -36,17 +57,39 @@ def main():
             break
         print search(str(query))
 
+
 def search(input):
     relevantFiles = list()
+    search_terms = input.split(' ')
+    docLength = list()
+    frequency = list()
     for file in files:
+        fileCounts = list()
         f = open(FILES + "/" + file, 'r')
         soup = BeautifulSoup(f)
-        title_tags = soup.findAll("title")
-        anchor_tags = soup.findAll('a')
+        title_tags = ' '.join([t.getText() for t in soup.findAll("title")])
+        anchor_tags = ' '.join([t.getText() for t in soup.findAll("a")])
         text = soup.getText()
-        if isRelevant(input, title_tags, anchor_tags, text, file):
-            relevantFiles.append(file)
-    return relevantFiles
+        docLength.append(len(text.split(" ")))
+        for term in search_terms:
+            fileCounts.append(getTermFrequency(term, title_tags, anchor_tags, text,fileCounts))
+        frequency.append(fileCounts)
+    numFiles = numRelevantFiles(frequency)
+    averageDocLength = sum(docLength)/len(docLength)
+    idfs = list()
+    i = 0
+    while i < len(search_terms):
+        idfs.append(idf(len(files), numFiles[i]))
+        i += 1
+    BM25s = list()
+    i = 0
+    while i < len(files):
+        BM25s.append(calcBM25(idfs, frequency[i], docLength[i], averageDocLength))
+        i += 1
+
+    maxBM25 = max(BM25s)
+    print maxBM25
+    return files[BM25s.index(maxBM25)].title()
 
 if __name__ == '__main__':
     main()
