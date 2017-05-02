@@ -88,8 +88,14 @@ def search(input):
         i += 1
 
     maxBM25 = max(BM25s)
-    print maxBM25
-    return files[BM25s.index(maxBM25)].title()
+    #print maxBM25
+    confidence = .95 * maxBM25
+    i = 0
+    while i < len(files):
+        if BM25s[i] >= confidence:
+            relevantFiles.append(files[i])
+        i += 1
+    return relevantFiles
 
 if __name__ == '__main__':
     main()
