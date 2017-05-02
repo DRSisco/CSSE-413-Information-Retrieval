@@ -3,6 +3,7 @@ from os import listdir
 from os.path import isfile, join
 import re
 import math;
+from skipgrams import skipbigrams
 
 FILES = "./Presidents"
 
