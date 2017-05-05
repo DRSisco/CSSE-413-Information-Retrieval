@@ -109,7 +109,7 @@ def search(input):
 
     maxBM25 = max(BM25s)
     #print maxBM25
-    confidence = .95 * maxBM25
+    confidence = .98 * maxBM25
     i = 0
     while i < len(files):
         if BM25s[i] >= confidence:
