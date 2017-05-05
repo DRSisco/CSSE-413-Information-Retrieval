@@ -23,7 +23,7 @@ def visible(element):
 def getTermFrequency(input, title_tags, anchor_tags, text, fileScore):
     number_of_results = len(re.findall(input, text, re.IGNORECASE))
     number_of_results += len(re.findall(input, anchor_tags, re.IGNORECASE))
-    number_of_results += 100 * len(re.findall(input, title_tags, re.IGNORECASE))
+    number_of_results += 100000 * len(re.findall(input, title_tags, re.IGNORECASE))
     return number_of_results
 
 
@@ -85,9 +85,8 @@ def search(input):
             searchBigrams = bigrams(search_terms)
             for bigram in searchBigrams:
                 fileCounts.append(len(re.findall(bigram, text, re.IGNORECASE)))
-        else:
-            for term in search_terms:
-                fileCounts.append(getTermFrequency(term, title_tags, anchor_tags, text,fileCounts))
+        for term in search_terms:
+            fileCounts.append(getTermFrequency(term, title_tags, anchor_tags, text,fileCounts))
         frequency.append(fileCounts)
     numFiles = numRelevantFiles(frequency)
     averageDocLength = sum(docLength)/len(docLength)
@@ -98,11 +97,10 @@ def search(input):
         while i < len(searchBigrams):
             idfs.append(idf(len(files), numFiles[i]))
             i += 1
-    else:
-        i = 0
-        while i < len(search_terms):
-            idfs.append(idf(len(files), numFiles[i]))
-            i += 1
+    i = 0
+    while i < len(search_terms):
+        idfs.append(idf(len(files), numFiles[i]))
+        i += 1
     BM25s = list()
     i = 0
     while i < len(files):
